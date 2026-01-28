@@ -25,7 +25,7 @@ export async function getTenantTrophyTemplates(
     return [];
   }
 
-  return data || [];
+  return (data as TrophyTemplate[]) || [];
 }
 
 export async function createTrophyTemplate(
@@ -39,7 +39,8 @@ export async function createTrophyTemplate(
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from("trophy_templates")
     .insert({
       tenant_id: tenantId,
@@ -66,7 +67,8 @@ export async function updateTrophyTemplate(
 ): Promise<ActionResult> {
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("trophy_templates")
     .update({
       name: input.name,
@@ -118,5 +120,5 @@ export async function getTrophyTemplate(
     return null;
   }
 
-  return data;
+  return data as TrophyTemplate;
 }

@@ -44,7 +44,8 @@ export async function updateMembership(
 
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("memberships")
     .update({
       role: validated.data.role,
@@ -99,13 +100,15 @@ export async function createInviteCode(
   }
 
   // Generate a unique code
-  const { data: codeData } = await supabase.rpc("generate_invite_code", {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: codeData } = await (supabase as any).rpc("generate_invite_code", {
     length: 8,
   });
 
   const code = codeData as string;
 
-  const { error } = await supabase.from("invite_codes").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("invite_codes").insert({
     tenant_id: tenantId,
     code,
     role_default: validated.data.roleDefault,
@@ -138,7 +141,7 @@ export async function getTenantInviteCodes(
     return [];
   }
 
-  return data || [];
+  return (data as InviteCode[]) || [];
 }
 
 export async function deactivateInviteCode(
@@ -146,7 +149,8 @@ export async function deactivateInviteCode(
 ): Promise<ActionResult> {
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("invite_codes")
     .update({ is_active: false })
     .eq("id", codeId);

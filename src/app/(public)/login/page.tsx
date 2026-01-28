@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -21,7 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 import { login } from "@/server/actions/auth";
 
-export default function LoginPage() {
+function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,64 +74,92 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-muted/50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <Link href="/" className="flex items-center justify-center gap-2 mb-4">
-            <Trophy className="h-8 w-8 text-amber-500" />
-            <span className="text-xl font-bold">Digital Trophy</span>
-          </Link>
-          <CardTitle>Welcome back</CardTitle>
-          <CardDescription>
-            Sign in to your account to continue
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                {...register("email")}
-              />
-              {errors.email && (
-                <p className="text-sm text-destructive">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <Link href="/" className="flex items-center justify-center gap-2 mb-4">
+          <Trophy className="h-8 w-8 text-amber-500" />
+          <span className="text-xl font-bold">Digital Trophy</span>
+        </Link>
+        <CardTitle>Welcome back</CardTitle>
+        <CardDescription>
+          Sign in to your account to continue
+        </CardDescription>
+      </CardHeader>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                {...register("password")}
-              />
-              {errors.password && (
-                <p className="text-sm text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign In
-            </Button>
-            <p className="text-sm text-muted-foreground text-center">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              {...register("password")}
+            />
+            {errors.password && (
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Sign In
+          </Button>
+          <p className="text-sm text-muted-foreground text-center">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="text-primary hover:underline">
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
+      </form>
+    </Card>
+  );
+}
+
+function LoginFormFallback() {
+  return (
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Trophy className="h-8 w-8 text-amber-500" />
+          <span className="text-xl font-bold">Digital Trophy</span>
+        </div>
+        <CardTitle>Welcome back</CardTitle>
+        <CardDescription>
+          Sign in to your account to continue
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-muted/50">
+      <Suspense fallback={<LoginFormFallback />}>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 }

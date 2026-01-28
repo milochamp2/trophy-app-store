@@ -22,7 +22,8 @@ export async function createTenant(
   const supabase = await createClient();
 
   // Use the security definer function to create tenant and owner membership
-  const { data, error } = await supabase.rpc("create_tenant_with_owner", {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any).rpc("create_tenant_with_owner", {
     tenant_name: validated.data.name,
     tenant_slug: validated.data.slug,
   });
@@ -53,7 +54,8 @@ export async function joinTenantWithCode(
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase.rpc("join_tenant_with_invite_code", {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any).rpc("join_tenant_with_invite_code", {
     invite_code_value: validated.data.inviteCode,
   });
 
@@ -110,7 +112,7 @@ export async function getTenantBySlug(slug: string): Promise<Tenant | null> {
     return null;
   }
 
-  return data;
+  return data as Tenant;
 }
 
 export async function getUserMembershipInTenant(tenantId: string) {
@@ -143,7 +145,8 @@ export async function updateTenant(
 ): Promise<ActionResult> {
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("tenants")
     .update(updates)
     .eq("id", tenantId);

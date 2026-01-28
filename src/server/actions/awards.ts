@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { createAwardSchema, type CreateAwardInput } from "@/lib/validations";
 import type { ActionResult } from "./auth";
-import type { Award, AwardWithDetails } from "@/db/database.types";
+import type { Award, AwardWithDetails, InsertTables } from "@/db/database.types";
 
 export async function getTenantAwards(tenantId: string): Promise<AwardWithDetails[]> {
   const supabase = await createClient();
@@ -103,16 +103,17 @@ export async function createAward(
     return { success: false, error: "Not authenticated" };
   }
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from("awards")
     .insert({
       tenant_id: tenantId,
       trophy_template_id: validated.data.trophyTemplateId,
       recipient_user_id: validated.data.recipientUserId,
       awarded_by_user_id: user.id,
-      season_id: validated.data.seasonId,
-      team_id: validated.data.teamId,
-      notes: validated.data.notes,
+      season_id: validated.data.seasonId ?? null,
+      team_id: validated.data.teamId ?? null,
+      notes: validated.data.notes ?? null,
       is_public: validated.data.isPublic,
     })
     .select("id")

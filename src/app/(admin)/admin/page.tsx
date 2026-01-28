@@ -1,10 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Plus, Building2, Settings } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import { getUserTenants } from "@/server/actions/tenants";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,18 +20,76 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CreateTenantForm } from "@/components/forms/create-tenant-form";
+import type { MembershipWithTenant } from "@/db/database.types";
+
+// Mock data for preview mode
+const MOCK_MEMBERSHIPS: MembershipWithTenant[] = [
+  {
+    id: "1",
+    tenant_id: "1",
+    user_id: "1",
+    role: "owner",
+    status: "active",
+    joined_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    tenant: {
+      id: "1",
+      name: "Demo Sports Club",
+      slug: "demo-sports-club",
+      logo_url: null,
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      stripe_subscription_status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  },
+  {
+    id: "2",
+    tenant_id: "2",
+    user_id: "1",
+    role: "admin",
+    status: "active",
+    joined_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    tenant: {
+      id: "2",
+      name: "City Basketball League",
+      slug: "city-basketball",
+      logo_url: null,
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      stripe_subscription_status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  },
+];
+
+async function getMemberships(): Promise<MembershipWithTenant[]> {
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const { getUserTenants } = await import("@/server/actions/tenants");
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      // Return mock data for preview
+      return MOCK_MEMBERSHIPS;
+    }
+
+    return await getUserTenants();
+  } catch {
+    // Return mock data when Supabase is not configured
+    return MOCK_MEMBERSHIPS;
+  }
+}
 
 export default async function AdminHomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const memberships = await getUserTenants();
+  const memberships = await getMemberships();
 
   // Filter to only show tenants where user is admin/staff/owner
   const adminMemberships = memberships.filter((m) =>

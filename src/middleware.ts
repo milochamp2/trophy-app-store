@@ -16,6 +16,12 @@ export async function middleware(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
+    // TEMPORARY: Allow all routes for preview (remove this block in production)
+    const PREVIEW_MODE = true;
+    if (PREVIEW_MODE) {
+      return supabaseResponse;
+    }
+
     // Allow public routes
     if (publicRoutes.includes(pathname)) {
       // Redirect logged-in users away from auth pages

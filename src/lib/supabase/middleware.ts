@@ -13,33 +13,47 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: CookieToSet[]) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Refresh session if expired - important for Server Components
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // If Supabase is not configured, return early with no user
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn("Supabase environment variables not configured");
+    return { supabaseResponse, user: null, supabase: null };
+  }
 
-  return { supabaseResponse, user, supabase };
+  try {
+    const supabase = createServerClient<Database>(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet: CookieToSet[]) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
+    // Refresh session if expired - important for Server Components
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    return { supabaseResponse, user, supabase };
+  } catch (error) {
+    console.error("Supabase middleware error:", error);
+    return { supabaseResponse, user: null, supabase: null };
+  }
 }

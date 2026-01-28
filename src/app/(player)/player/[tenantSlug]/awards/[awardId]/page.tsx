@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { Trophy, ArrowLeft, Calendar, User, Users, Award } from "lucide-react";

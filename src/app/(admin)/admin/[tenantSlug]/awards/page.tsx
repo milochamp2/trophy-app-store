@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { redirect, notFound } from "next/navigation";
 import { Plus, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";

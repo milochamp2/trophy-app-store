@@ -1,8 +1,109 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { getUserTenants } from "@/server/actions/tenants";
-import { getProfile } from "@/server/actions/auth";
 import { AppShell } from "@/components/app-shell";
+import type { Profile, MembershipWithTenant } from "@/db/database.types";
+
+// Mock data for preview mode
+const MOCK_PROFILE: Profile = {
+  id: "demo-user-id",
+  display_name: "Demo User",
+  avatar_url: null,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+const MOCK_MEMBERSHIPS: MembershipWithTenant[] = [
+  {
+    id: "1",
+    tenant_id: "1",
+    user_id: "demo-user-id",
+    role: "player",
+    status: "active",
+    joined_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    tenant: {
+      id: "1",
+      name: "Demo Sports Club",
+      slug: "demo-sports-club",
+      logo_url: null,
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      stripe_subscription_status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  },
+  {
+    id: "2",
+    tenant_id: "2",
+    user_id: "demo-user-id",
+    role: "player",
+    status: "active",
+    joined_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    tenant: {
+      id: "2",
+      name: "City Basketball League",
+      slug: "city-basketball",
+      logo_url: null,
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      stripe_subscription_status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  },
+  {
+    id: "3",
+    tenant_id: "3",
+    user_id: "demo-user-id",
+    role: "staff",
+    status: "active",
+    joined_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    tenant: {
+      id: "3",
+      name: "Youth Soccer Academy",
+      slug: "youth-soccer",
+      logo_url: null,
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      stripe_subscription_status: "active",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  },
+];
+
+async function getLayoutData(): Promise<{
+  profile: Profile | null;
+  memberships: MembershipWithTenant[];
+}> {
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const { getUserTenants } = await import("@/server/actions/tenants");
+    const { getProfile } = await import("@/server/actions/auth");
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      // Return mock data for demo mode
+      return { profile: MOCK_PROFILE, memberships: MOCK_MEMBERSHIPS };
+    }
+
+    const [profile, memberships] = await Promise.all([
+      getProfile(),
+      getUserTenants(),
+    ]);
+
+    return { profile, memberships };
+  } catch {
+    // Return mock data when Supabase is not configured
+    return { profile: MOCK_PROFILE, memberships: MOCK_MEMBERSHIPS };
+  }
+}
 
 export default async function PlayerLayout({
   children,
@@ -11,19 +112,7 @@ export default async function PlayerLayout({
   children: React.ReactNode;
   params: { tenantSlug?: string };
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const [profile, memberships] = await Promise.all([
-    getProfile(),
-    getUserTenants(),
-  ]);
+  const { profile, memberships } = await getLayoutData();
 
   // Get tenantSlug from the URL if it exists
   const tenantSlug = params.tenantSlug;
